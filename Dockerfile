@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.12-slim-trixie@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONUTF8=1 \
     HOST=0.0.0.0 PORT=8086 DATABASE_PATH=/data/k-agora.sqlite3 SEED_DEMO=false
 WORKDIR /app

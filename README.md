@@ -1,3 +1,14 @@
+# K-AGORA-NAS · NAS 배포용 별도 프로젝트
+
+K-AGORA 앱을 GitLab CI/CD와 Synology NAS에서 실행하기 위한 별도 저장소입니다. 운영 데이터는 Git에 포함하지 않고 NAS의 영구 볼륨 `k-agora-data`에 저장합니다.
+
+- 배포 방법: [GitLab · NAS 배포 안내](docs/nas-deployment.md)
+- 후보 포트: 8086 (최초 배포 시 실제 충돌 확인)
+- 첫 NAS 실행은 빈 DB이며 웹에서 JSON 백업을 가져옵니다.
+- 기존 K-AGORA 저장소와 독립적으로 관리합니다.
+
+---
+
 # K-AGORA · K-에듀파인 업무협의체 안건 검색
 
 기획서의 1단계 시제품을 구현한 내부 검토용 웹 애플리케이션입니다. 자연어 형태의 질문으로 협의체 안건을 검색하고 당시 요구사항과 답변을 함께 확인합니다.
@@ -46,7 +57,7 @@ VS Code에서 이 프로젝트를 열고 F5로 실행할 수 있습니다. Pytho
 ### 1. 저장소 열기
 
 1. VS Code에서 `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`)를 누르고 **Git: Clone**을 선택합니다.
-2. `https://github.com/wtg1021/K-AGORA.git`을 입력하고 저장할 폴더를 선택합니다.
+2. `https://github.com/wtg1021/K-AGORA-NAS.git`을 입력하고 저장할 폴더를 선택합니다.
 3. 복제가 끝나면 **Open / 열기**를 선택합니다. 이미 내려받았다면 **파일 → 폴더 열기**로 `K-AGORA` 폴더를 엽니다.
 4. 신뢰할 수 있는 본인 프로젝트인지 확인한 후 작업 영역을 신뢰하고, 추천 확장 **Python**, **Python Debugger**를 설치합니다.
 5. 명령 팔레트에서 **Python: Select Interpreter**를 실행하고 Python 3.12 이상의 인터프리터를 선택합니다. 기본 앱은 외부 Python 패키지가 필요하지 않습니다.
@@ -96,8 +107,8 @@ VS Code에서 Python을 찾지 못하면 **Python: Select Interpreter**를 다�
 Windows PowerShell, macOS 터미널 또는 Linux 터미널에서 작업할 폴더로 이동한 뒤 실행합니다.
 
 ```bash
-git clone https://github.com/wtg1021/K-AGORA.git
-cd K-AGORA
+git clone https://github.com/wtg1021/K-AGORA-NAS.git
+cd K-AGORA-NAS
 ```
 
 이미 내려받은 저장소가 있다면 해당 폴더에서 `git status`로 수정사항을 확인하고 `git pull --ff-only`로 갱신하세요. 로컬 수정사항이 있으면 먼저 보관하세요. 이후 모든 명령은 `README.md`와 `agora` 폴더가 있는 **저장소 루트**에서 실행합니다.
@@ -268,3 +279,7 @@ BASE_URL=http://127.0.0.1:8002 CHROMIUM_PATH=/usr/bin/chromium node scripts/brow
 ```
 
 `NODE_PATH` 등 Playwright 설치 경로 지정은 위 선택 브라우저 테스트 안내를 참고하세요. DB 이전·37건 가져오기·원문 보존·백업 복원·다중 업무 필터·KERIS/반영 상태 분리는 `python3 -m unittest discover -s tests -v`로 함께 검증합니다.
+
+## GitLab · NAS 배포
+
+8086 포트를 후보로 하는 Synology host 네트워크 배포 파일을 포함합니다. 운영 DB는 `k-agora-data` 영구 볼륨에 보관하고, 첫 배포는 0건으로 시작해 웹에서 JSON 백업을 가져옵니다. 배포 전 포트 확인과 DB 백업을 수행하며 main에서 수동 배포합니다. 설정·GitLab 변수·이전 방법은 [NAS 배포 안내](docs/nas-deployment.md)를 참고하세요.

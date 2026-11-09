@@ -1,0 +1,32 @@
+name: k-agora
+services:
+  app:
+    image: k-agora:${APP_IMAGE_TAG:?Set APP_IMAGE_TAG to the verified commit SHA}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      network: host
+    network_mode: host
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpu_shares: 512
+    mem_limit: 256m
+    environment:
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-8086}
+      DATABASE_PATH: /data/k-agora.sqlite3
+      SEED_DEMO: "false"
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN in the protected PROD_ENV_FILE variable}
+    volumes:
+      - data:/data
+volumes:
+  data:
+    name: k-agora-data

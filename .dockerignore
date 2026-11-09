@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+node_modules
+__pycache__
+*.pyc
+*.sqlite*
+*.pdf
+*.zip
+.test-artifacts
+.sites-runtime

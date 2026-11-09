@@ -1,0 +1,59 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+stages: [scan, verify, deploy]
+
+secret-scan:
+  stage: scan
+  image:
+    name: zricethezav/gitleaks:v8.24.2
+    entrypoint: [""]
+  script:
+    - gitleaks dir --redact --exit-code 1 .
+
+build-test:
+  stage: verify
+  image: docker:24.0.9-cli
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    - docker build --pull --network host --target test -t "k-agora-test:$CI_COMMIT_SHA" .
+    - test "$(docker run --rm --network host "k-agora-test:$CI_COMMIT_SHA" id -u)" != 0
+    - docker run --rm --network host "k-agora-test:$CI_COMMIT_SHA" python -m unittest discover -s tests -v
+    - docker build --network host --target production -t "k-agora:$CI_COMMIT_SHA" .
+
+text-tests:
+  stage: verify
+  image: node:22.14.0-bookworm-slim
+  script:
+    - node --test tests/text-format.test.cjs
+
+image-scan:
+  stage: verify
+  needs: [build-test]
+  image:
+    name: aquasec/trivy:0.61.1
+    entrypoint: [""]
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    - trivy image --image-src docker --scanners vuln --severity CRITICAL --exit-code 1 --no-progress "k-agora:$CI_COMMIT_SHA"
+
+deploy-nas:
+  stage: deploy
+  image: docker:24.0.9-cli
+  needs: [build-test, text-tests, image-scan, secret-scan]
+  resource_group: k-agora-nas
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  environment:
+    name: production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  script:
+    - sh scripts/deploy-nas.sh
